@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>特别的你</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: #000;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            font-family: 'Poppins', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: default;
+        }
+        .background {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            background-image: url("7BCB1622B1B79088746460730DF4E105.png");
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
+            z-index: -1;
+            overflow: hidden;
+        }
+        .particles-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+        }
+        .container {
+            max-width: 700px;
+            position: relative;
+            z-index: 10;
+            text-align: center;
+        }
+        .content {
+            display: none;
+            padding: 2rem;
+            border-radius: 20px;
+            transform: translateY(20px);
+            opacity: 0;
+            transition: all 0.5s ease;
+        }
+        .content.active {
+            display: block;
+            transform: translateY(0);
+            opacity: 1;
+        }
+        .message {
+            font-size: 1.4rem;
+            line-height: 1.6;
+            color: #fff;
+            margin: 20px;
+        }
+        .message-paragraph {
+            margin: 10px 0;
+            opacity: 0;
+            transform: translateY(30px);
+            animation: paraFadeIn 0.8s ease-out forwards;
+        }
+        .message-character {
+            opacity: 0;
+            transform: translateY(30px) scale(0.3);
+            display: inline-block;
+            animation: charFadeIn 0.8s ease-out forwards;
+        }
+        @keyframes paraFadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        @keyframes charFadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+        .heart {
+            font-size: 4rem;
+            color: #ff6b6b;
+            margin-bottom: 20px;
+        }
+        .background-music {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+        /* 音乐控制按钮样式 */
+        .music-control {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-family: 'Poppins', sans-serif;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+        .music-control:hover {
+            transform: scale(1.1);
+            background: rgba(255, 255, 255, 1);
+        }
+        .music-icon {
+            font-size: 20px;
+            margin-right: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="background">
+        <canvas class="particles-canvas"></canvas>
+    </div>
+    <div class="container">
+        <div class="music-control" onclick="onToggleMusic()">
+            <i class="fas fa-music music-icon"></i>
+            播放背景音乐
+        </div>
+        <div class="content active" data-content="1">
+            <div class="heart">💖</div>
+            <div class="message" id="message1"></div>
+        </div>
+        <div class="content" data-content="2">
+            <div class="heart">💖</div>
+            <div class="message" id="message2"></div>
+        </div>
+        <div class="content" data-content="3">
+            <div class="heart">💖</div>
+            <div class="message" id="message3"></div>
+        </div>
+        <div class="content" data-content="4">
+            <div class="heart">💖</div>
+            <div class="message" id="message4"></div>
+        </div>
+    </div>
+    <audio autoplay loop class="background-music" id="bgMusic">
+        <source src="1.mp3">
+        您的浏览器不支持 audio 标签。
+    </audio>
+    <script>
+        const canvas = document.querySelector('.particles-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        const particleCount = 150;
+        function initCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        function createParticles() {
+            particles = [];
+            for (let i = 0; i < particleCount; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    size: Math.random() * 3 + 1,
+                    speedX: Math.random() * 3 - 1.5,
+                    speedY: Math.random() * 3 - 1.5,
+                });
+            }
+        }
+        function drawParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.strokeStyle = '#ff6b6b';
+            particles.forEach((particle) => {
+                ctx.beginPath();
+                ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+                ctx.stroke();
+            });
+        }
+        function updateParticles() {
+            particles.forEach((particle) => {
+                particle.x += particle.speedX;
+                particle.y += particle.speedY;
+                if (particle.x > canvas.width) particle.x = 0;
+                if (particle.x < 0) particle.x = canvas.width;
+                if (particle.y > canvas.height) particle.y = 0;
+                if (particle.y < 0) particle.y = canvas.height;
+            });
+        }
+        function animate() {
+            updateParticles();
+            drawParticles();
+            requestAnimationFrame(animate);
+        }
+        initCanvas();
+        createParticles();
+        animate();
+        document.addEventListener('mousemove', (e) => {
+            particles.forEach((particle, i) => {
+                const speedFactor = (i + 1) / 100;
+                const dx = (e.clientX - particle.x) * 0.005;
+                const dy = (e.clientY - particle.y) * 0.005;
+                particle.x += dx;
+                particle.y += dy;
+            });
+        });
+        window.addEventListener('resize', () => {
+            initCanvas();
+            createParticles();
+        });
+        const messages = [
+            [
+                "亲爱的欢",
+                "从第一次遇见你，",
+                "到未来的未来。",
+                "每一天，",
+                "都会是与你有关的奇迹。",
+                "你是我生命中最美的意外，",
+                "让我们一起走下去吧！"
+            ],
+            [
+                "special for you ",
+                "之后的每个瞬间，",
+                "都想与你分享。",
+                "愿未来的每一步，",
+                "都能与你同行。",
+                "若岁月无法长流，",
+                "我愿与你长眠"
+            ],
+            [
+                "某一天，",
+                "我会为你披上洁白的婚纱，",
+                "向星星们宣誓。",
+                "无论是现在，",
+                "还是未来，",
+                "我都会一直在你身边。",
+                "爱你！ "
+            ],
+            [
+                "让我做一个见证者和参与者，",
+                "去目睹和参与你的幸福。",
+                "我的每一天，",
+                "每一刻，",
+                "也将因为有你而变得美好。",
+                "另外，",
+                "今晚的月色真美，",
+                "爱你的七七"
+            ]
+        ];
+        let currentPage = 0;
+        const totalPages = 4;
+        initializePage(currentPage);
+        
+        // 修改：将 click 事件改为 mousedown，并根据鼠标按钮判断左键/右键
+        document.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            if (e.button === 0) { // 左键点击，翻页
+                if (currentPage < totalPages - 1) {
+                    currentPage++;
+                    initializePage(currentPage);
+                }
+            } else if (e.button === 2) { // 右键点击，返回
+                if (currentPage > 0) {
+                    currentPage--;
+                    initializePage(currentPage);
+                }
+            }
+        });
+
+        function initializePage(pageNumber) {
+            const currentContent = document.querySelector(`[data-content="${pageNumber + 1}"]`);
+            const messageContainer = currentContent.querySelector('.message');
+            messageContainer.innerHTML = '';
+            const textArray = messages[pageNumber];
+            textArray.forEach((text, paragraphIndex) => {
+                const paragraph = document.createElement('p');
+                paragraph.className = 'message-paragraph';
+                paragraph.style.animationDelay = `${paragraphIndex * 1}s`;
+                text.split('').forEach((char, charIndex) => {
+                    const charElement = document.createElement('span');
+                    charElement.className = 'message-character';
+                    charElement.style.animationDelay = `${charIndex * 0.1}s`;
+                    charElement.textContent = char === ' ' ? '　' : char;
+                    paragraph.appendChild(charElement);
+                });
+                messageContainer.appendChild(paragraph);
+            });
+            document.querySelectorAll('.content').forEach(content => {
+                content.classList.remove('active');
+            });
+            currentContent.classList.add('active');
+            createParticles();
+        }
+        // 音乐播放/暂停控制函数
+        function onToggleMusic() {
+            const audio = document.getElementById('bgMusic');
+            const button = document.querySelector('.music-control');
+            const icon = button.querySelector('.music-icon');
+            if (audio.paused) {
+                audio.play();
+                button.textContent = '嘻嘻';
+                icon.classList.remove('fa-pause');
+                icon.classList.add('fa-play');
+            } else {
+                audio.pause();
+                button.textContent = '不嘻嘻';
+                icon.classList.remove('fa-play');
+                icon.classList.add('fa-pause');
+            }
+        }
+    </script>
+</body>
+</html>
