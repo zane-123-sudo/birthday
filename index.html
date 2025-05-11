@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>祝老爸生日快乐</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: #000;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            font-family: 'Poppins', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: default;
+        }
+        .background {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
+            z-index: -3;
+            filter: brightness(0.5);
+        }
+        .particles-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+        }
+        .container {
+            max-width: 700px;
+            position: relative;
+            z-index: 10;
+            text-align: center;
+        }
+        .content {
+            display: none;
+            padding: 2rem;
+            border-radius: 20px;
+            transform: translateY(20px);
+            opacity: 0;
+            transition: all 0.5s ease;
+        }
+        .content.active {
+            display: block;
+            transform: translateY(0);
+            opacity: 1;
+        }
+        .message {
+            font-size: 1.4rem;
+            line-height: 1.6;
+            color: #fff;
+            margin: 20px;
+            text-shadow: 0 0 8px rgba(0, 0, 0, 0.7);
+        }
+        .message-paragraph {
+            margin: 10px 0;
+            opacity: 0;
+            transform: translateY(30px);
+            animation: paraFadeIn 0.8s ease-out forwards;
+        }
+        .message-character {
+            opacity: 0;
+            transform: translateY(30px) scale(0.3);
+            display: inline-block;
+            animation: charFadeIn 1.6s ease-out forwards;
+        }
+        @keyframes paraFadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        @keyframes charFadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+        .heart {
+            font-size: 4rem;
+            color: #ff6b6b;
+            margin-bottom: 20px;
+        }
+        .background-music {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+        .music-control {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-family: 'Poppins', sans-serif;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+        .music-control:hover {
+            transform: scale(1.1);
+            background: rgba(255, 255, 255, 1);
+        }
+        .music-icon {
+            font-size: 20px;
+            margin-right: 8px;
+        }
+        .arrow-button {
+            position: fixed;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 2rem;
+            background: rgba(255, 255, 255, 0.8);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 1000;
+            user-select: none;
+        }
+        .arrow-left {
+            left: 20px;
+        }
+        .arrow-right {
+            right: 20px;
+        }
+    </style>
+</head>
+<body>
+<div class="background" id="background"></div>
+<canvas class="particles-canvas"></canvas>
+<div class="container">
+    <div class="music-control" onclick="onToggleMusic()">
+        <i class="fas fa-music music-icon"></i>
+        播放背景音乐
+    </div>
+    <div class="content active" data-content="1">
+        <div class="heart"></div>
+        <div class="message" id="message1"></div>
+    </div>
+    <div class="content" data-content="2">
+        <div class="heart"></div>
+        <div class="message" id="message2"></div>
+    </div>
+    <div class="content" data-content="3">
+        <div class="heart"></div>
+        <div class="message" id="message3"></div>
+    </div>
+    <div class="content" data-content="4">
+        <div class="heart"></div>
+        <div class="message" id="message4"></div>
+    </div>
+</div>
+<button class="arrow-button arrow-left" onclick="prevPage()">←</button>
+<button class="arrow-button arrow-right" onclick="nextPage()">→</button>
+<audio autoplay loop class="background-music" id="bgMusic">
+    <source src="1.mp3">
+    您的浏览器不支持 audio 标签。
+</audio>
+<script>
+    const canvas = document.querySelector('.particles-canvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+    const particleCount = 150;
+    const backgroundImages = [
+        "c5ab9d69c8a54e6102950896003e2b23.png",
+        "5a02e50f959b4e0d59644cf88b1d5990.png",
+        "c2e86200a1b56233f56ab839585bb9fd.png",
+        "7796056d4045fce65eb94efd53f0dcdb.png"
+    ];
+
+    function initCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    function createParticles() {
+        particles = [];
+        for (let i = 0; i < particleCount; i++) {
+            particles.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                size: Math.random() * 3 + 1,
+                speedX: Math.random() * 3 - 1.5,
+                speedY: Math.random() * 3 - 1.5,
+            });
+        }
+    }
+    function drawParticles() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.strokeStyle = '#ff6b6b';
+        particles.forEach((particle) => {
+            ctx.beginPath();
+            ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+            ctx.stroke();
+        });
+    }
+    function updateParticles() {
+        particles.forEach((particle) => {
+            particle.x += particle.speedX;
+            particle.y += particle.speedY;
+            if (particle.x > canvas.width) particle.x = 0;
+            if (particle.x < 0) particle.x = canvas.width;
+            if (particle.y > canvas.height) particle.y = 0;
+            if (particle.y < 0) particle.y = canvas.height;
+        });
+    }
+    function animate() {
+        updateParticles();
+        drawParticles();
+        requestAnimationFrame(animate);
+    }
+    initCanvas();
+    createParticles();
+    animate();
+    document.addEventListener('mousemove', (e) => {
+        particles.forEach((particle, i) => {
+            const dx = (e.clientX - particle.x) * 0.005;
+            const dy = (e.clientY - particle.y) * 0.005;
+            particle.x += dx;
+            particle.y += dy;
+        });
+    });
+    window.addEventListener('resize', () => {
+        initCanvas();
+        createParticles();
+    });
+
+    const messages = [
+        ["亲爱的老爸","很遗憾未在您的42岁生日准时送上祝福","现在我在此刻","远隔山河","以简短的话语向您表达衷心的祝福与感谢"],
+        ["这是年轻的您","时光在您身上走的特别安静","从稚气未退到鬓已星霜","从踌躇满志到身心俱疲","岁月无法言语的是您渐弯的脊梁"],
+        ["我心怀感激","感谢您对我的关怀与付出","我知道","我能平静走在路上","是因为你曾在我看不见的地方","默默站成山的模样","将我高高托举 "],
+        ["风吹过年轮","我逐渐懂得了您沉默的爱","那些不言而喻的沉默落在我成长的每一步","也希望您在烟火的繁忙中","仍有机会看看你身后悄然盛开的岁月","最后","祝您平安，喜乐","同您也希望我那样"]
+    ];
+
+    let currentPage = 0;
+    const totalPages = messages.length;
+    initializePage(currentPage);
+
+    function prevPage() {
+        if (currentPage > 0) {
+            currentPage--;
+            initializePage(currentPage);
+        }
+    }
+    function nextPage() {
+        if (currentPage < totalPages - 1) {
+            currentPage++;
+            initializePage(currentPage);
+        }
+    }
+
+    function initializePage(pageNumber) {
+        document.querySelectorAll('.content').forEach(content => {
+            content.classList.remove('active');
+        });
+        const currentContent = document.querySelector(`[data-content="${pageNumber + 1}"]`);
+        const messageContainer = currentContent.querySelector('.message');
+        messageContainer.innerHTML = '';
+        const textArray = messages[pageNumber];
+        textArray.forEach((text, paragraphIndex) => {
+            const paragraph = document.createElement('p');
+            paragraph.className = 'message-paragraph';
+            paragraph.style.animationDelay = `${paragraphIndex * 1}s`;
+            text.split('').forEach((char, charIndex) => {
+                const charElement = document.createElement('span');
+                charElement.className = 'message-character';
+                charElement.style.animationDelay = `${charIndex * 0.1}s`;
+                charElement.textContent = char === ' ' ? '　' : char;
+                paragraph.appendChild(charElement);
+            });
+            messageContainer.appendChild(paragraph);
+        });
+        currentContent.classList.add('active');
+        document.getElementById('background').style.backgroundImage = `url('${backgroundImages[pageNumber]}')`;
+        createParticles();
+    }
+
+    function onToggleMusic() {
+        const audio = document.getElementById('bgMusic');
+        const button = document.querySelector('.music-control');
+        const icon = button.querySelector('.music-icon');
+        if (audio.paused) {
+            audio.play();
+            button.textContent = '谢谢您';
+            icon.classList.remove('fa-pause');
+            icon.classList.add('fa-play');
+        } else {
+            audio.pause();
+            button.textContent = '祝您开心';
+            icon.classList.remove('fa-play');
+            icon.classList.add('fa-pause');
+        }
+    }
+</script>
+</body>
+</html>
